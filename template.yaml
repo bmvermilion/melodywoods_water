@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  melody-woods-water
+
+  Sample SAM Template for melody-woods-water
+
+Resources:
+  well3:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      CodeUri: well3/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Description: ''
+      MemorySize: 128
+      Timeout: 3
+      Role: 'arn:aws:iam::421269454553:role/service-role/Well_3-role-n859ml4d'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: cron(00 11 * * ? *)
+        Schedule2:
+          Type: Schedule
+          Properties:
+            Schedule: cron(00 08 * * ? *)

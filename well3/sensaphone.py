@@ -2,85 +2,48 @@ import requests
 from requests.exceptions import HTTPError
 import json
 import datetime
+import boto3
+from base64 import b64decode
 
-DATA_LOG_ENDPOINT = "https://rest.sensaphone.net/api/v1/history/data_log"
-DATA2_LOG_ENDPOINT = "https://rest.sensaphone.net/api/v1/history/event_log"
-
-acctid = None
+account_id = None
 session = None
-
-dashboard_data = {
-    "request_type": "read",
-    "resource": "dashboard",
-    "acctid": 100010835,
-    "session": "c568645fca022fec2f12c483cef938ade0de",
-    "dashboard": {
-        "online_count": None,
-        "device": [{
-            "name": None
-        }]
-    }}
-
-data_log = {
-    "request_type": "read",
-    "acctid": 100010835,
-    "session": "c568645fca022fec2f12c483cef938ade0de",
-    "history":
-        {
-            "data_log_points": {
-                "resource_type": "device",
-                "device_id": 45275
-            }
-        }
-}
-
-data2_log = {
-    "request_type": "read",
-    "acctid": 100010835,
-    "session": "c568645fca022fec2f12c483cef938ade0de",
-    "history":
-        {
-            "data_log": {
-                "log_points": [124369675],
-                "begin_offset": 0,
-                "record_offset": 150
-            }
-        }
-}
 
 
 def login():
-    """Login to sensaphone and collected session, acctind and session_experation
-    Should handle username and password storage better in the future
+    """
+    Login to Sensaphone and collect session, acctid and session_expiration
+    Should handle username and password storage better in the future for AWS
     """
 
-    global acctid, session
+    global account_id, session
 
-    username = 'brian.vermilion@gmail.com'
-    password = '5z6DbBjTZKK2'
+    username = 'controls@melodywoods.awsapps.com'
+    password = decrypt_password()
     login_data = {"request_type": "create", "resource": "login", "user_name": username, "password": password}
     url = 'https://rest.sensaphone.net/api/v1/login'
+
+    print('Attempting to Login to Sensaphone')
     r = sensaphone_request(url, login_data)
 
     if r['result']['success']:
         creds = {'session': r['response']['session'], 'acctid': r['response']['acctid'], 'session_expiration': str(
             datetime.datetime.fromtimestamp(r['response']['session_expiration'] + r['response']['login_timestamp']))}
-        with open('creds.json', 'w') as fp:
-            json.dump(creds, fp)
+        #with open('creds.json', 'w') as fp:
+        #    json.dump(creds, fp)
 
-        acctid = creds['acctid']
+        account_id = creds['acctid']
         session = creds['session']
 
         return True
     else:
-        print('Login Failure', r['result'])
+        print('Auth Failure Sensaphone Account ', r['result'])
         return False
 
 
 def check_valid_session():
-    """Check if current session id is valid. If not login"""
+    """Check if current session id is valid. If not then login"""
 
-    global acctid, session
+    global account_id, session
 
     try:
         with open('creds.json', 'r') as fp:
@@ -93,52 +56,62 @@ def check_valid_session():
         time_till_expire = session_expiration - now
 
         if time_till_expire.total_seconds() / 3660 > 1.0:
-            acctid = creds['acctid']
+            account_id = creds['acctid']
             session = creds['session']
             return True
         else:
+            print("Sensaphone Creds Expired")
             return login()
+
+
+def decrypt_password():
+
+    with open('encrypted_controls.pem', 'r') as encrypted_pem:
+        pem_file = encrypted_pem.read()
+
+    kms = boto3.client('kms', region_name='us-west-2')
+    return kms.decrypt(CiphertextBlob=b64decode(pem_file))['Plaintext'].decode("utf-8")
 
 
 def sensaphone_request(url, data):
     try:
         response = requests.post(url=url, data=json.dumps(data))
-        response.raise_for_status()
-    except HTTPError as http_err:
-        print(f'HTTP error occurred: {http_err}')
-    except Exception as err:
-        print(f'Other error occurred: {err}')
-    else:
-        r = json.loads(response.content)
+        r = json.loads(response.text)
 
         if r['result']['success']:
-            print('Request Success!')
+            print('API Request Success!\n' + url)
             return r
         else:
             if r['result']['code'] == 2:
-                print('Sessions Expired! How?', r)
+                print('Session Expired! How?', r)
                 login()
                 return False
             else:
                 print(r)
                 return False
 
+    except HTTPError as http_err:
+        print(f'HTTP error occurred: {http_err}')
+    except Exception as err:
+        print(f'Other error occurred: {err}')
+
 
 def get_all_device_id():
     """Get all if of devices connected to account"""
 
-    global acctid, session
+    global account_id, session
 
     url = 'https://rest.sensaphone.net/api/v1/device'
     payload = {
         "request_type": "read",
         "resource": "device",
-        "acctid": acctid,
+        "acctid": account_id,
         "session": session,
         "device": None
     }
 
     data = sensaphone_request(url, payload)
+    print(json.dumps(data))
     devices = []
     for d in data['response']['device']:
         sensors = []
@@ -156,13 +129,13 @@ def get_all_device_id():
 def device_info(device_id):
     """Get information about specific devices"""
 
-    global acctid, session
+    global account_id, session
 
     url = 'https://rest.sensaphone.net/api/v1/device'
     payload = {
         "request_type": "read",
         "resource": "device",
-        "acctid": acctid,
+        "acctid": account_id,
         "session": session,
         "device": [
             {
@@ -187,23 +160,26 @@ def device_info(device_id):
     return devices
 
 
-def device_sensor_info(device_id, zone_id):
+def device_sensor_info(device_id, zone_id, pump_value):
     """Get information about a specific sensor on a device"""
 
-    global acctid, session
+    global account_id, session
 
-    url = "https://rest.sensaphone.net/api/v2/device/zone"
+    url = "https://rest.sensaphone.net/api/v1/device/zone"
     payload = {
         "request_type": "read",
         "resource": "device",
-        "acctid": acctid,
+        "acctid": account_id,
         "session": session,
         "device": [
             {
                 "device_id": device_id,
                 "zone": [
                     {
-                        "zone_id": zone_id
+                        "zone_id": zone_id,
+                        "output_zone": {
+                                "value": pump_value
+                            }
                     }
                 ]
             }
@@ -221,12 +197,12 @@ def device_history(device_id, zone_ids):
     # need to get log point then get history for log point....
     # log_points is an array...
 
-    global acctid, session
+    global account_id, session
     url = "https://rest.sensaphone.net/api/v1/history/data_log_points"
 
     payload = {
         "request_type": "read",
-        "acctid": acctid,
+        "acctid": account_id,
         "session": session,
         "history":
             {
@@ -243,8 +219,8 @@ def device_history(device_id, zone_ids):
         if z['zone_id'] in zone_ids:
             log_points.append(z['log_point'])
 
-    #print(json.dumps(data))
-    #exit(0)
+    # print(json.dumps(data))
+    # exit(0)
 
     ts = sensaphone_timestamp(10)
 
@@ -252,7 +228,7 @@ def device_history(device_id, zone_ids):
 
     payload = {
         "request_type": "read",
-        "acctid": acctid,
+        "acctid": account_id,
         "session": session,
         "history":
             {
@@ -269,17 +245,41 @@ def device_history(device_id, zone_ids):
     return data
 
 
-# def change_device_output(device_id, zone_id, value):
-# """"""
-# url = 'https://rest.sensaphone.net/api/v2/device/zone'
+def change_device_output(device_id, zone_id, pump_value):
+    global account_id, session
+
+    url = "https://rest.sensaphone.net/api/v1/device/zone"
+    payload = {
+        "request_type": "update",
+        "resource": "device",
+        "acctid": account_id,
+        "session": session,
+        "device": [
+            {
+                "device_id": device_id,
+                "zone": [
+                    {
+                        "zone_id": zone_id,
+                        "output_zone": {
+                                "value": pump_value
+                            }
+                    }
+                ]
+            }
+        ]
+    }
+
+    data = sensaphone_request(url, payload)
+
+    return data
 
 
 def sensaphone_timestamp(hours):
-
     delta = datetime.datetime.utcnow() - datetime.timedelta(hours=hours)
     print(delta)
 
-    ts = (delta.second % 60) + ((delta.minute * 60) % 3600) + ((delta.hour * 3600) % 86400) + ((delta.day * 86400) % 2678400) + ((delta.month * 2678400) % 32140800) +((delta.year % 100 * 32140800))
+    ts = (delta.second % 60) + ((delta.minute * 60) % 3600) + ((delta.hour * 3600) % 86400) + (
+                (delta.day * 86400) % 2678400) + ((delta.month * 2678400) % 32140800) + ((delta.year % 100 * 32140800))
     print(ts)
     return ts
 
@@ -294,33 +294,41 @@ What is the history?
 Change values?
 """
 
+"""
 if check_valid_session():
 
+    # Well #3
     device_id = 45275
-    zone_ids = [3]
-    log_point = 124369675
+    # Output
+    zone_id = 26
+    # log_point = 124369675
 
+    # Set Well#3 Output
+    data = device_sensor_info(device_id, zone_id)
+    print(json.dumps(data))
     # data = get_all_device_id()
     # print(json.dumps(data))
-
+    # exit(0)
     # data = device_info(device_id)
     # print(json.dumps(data))
 
-    # device_sensor_info(device_id, zone_id)
-    #device_history(device_id, zone_ids)
+    # device_history(device_id, zone_ids)
 
-    url = 'https://rest.sensaphone.net/api/v1/user'
+    # url = 'https://rest.sensaphone.net/api/v1/user'
+    
     payload = {
         "request_type": "read",
         "resource": "user",
-        "acctid": acctid,
+        "acctid": account_id,
         "session": session,
         "user": None
     }
-    print(acctid)
-    data = sensaphone_request(url, payload)
-    #print(json.dumps(data))
-    exit(0)
+    
+    # print(account_id)
+    # data = sensaphone_request(url, payload)
+    # print(json.dumps(data))
+    # exit(0)
 
 else:
     print('Unable to login!')
+"""
