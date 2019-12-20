@@ -23,11 +23,11 @@ Resources:
             Description: "Turn On Well #3 Pump"
             Name: "well3-on"
             Input: '{"pump": "on"}'
-            Schedule: cron(00 09 * * ? *)
+            Schedule: cron(00 08 * * ? *)
         Schedule2:
           Type: Schedule
           Properties:
             Description: "Turn Off Well #3 Pump"
             Name: "well3-off"
             Input: '{"pump": "off"}'
-            Schedule: cron(00 08 * * ? *)
+            Schedule: cron(00 09 * * ? *)
