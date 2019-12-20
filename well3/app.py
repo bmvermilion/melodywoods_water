@@ -9,17 +9,15 @@ def lambda_handler(event, context):
         # Sentinel Output
         zone_id = 26
 
-        event['pump'] = 'off'
-
         if event['pump'] == 'off':
             pump_value = 0
         elif event['pump'] == 'on':
             pump_value = 1
         else:
             pump_value = None
+            data = 'Invalid Pump Value!'
 
         # Set Well#3 Output
-        print('Pump Value to set: ', pump_value)
         data = sensaphone.change_device_output(device_id, zone_id, pump_value)
 
     else:

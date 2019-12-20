@@ -4,6 +4,7 @@ import json
 import datetime
 import boto3
 from base64 import b64decode
+from urllib.parse import urlparse
 
 account_id = None
 session = None
@@ -33,7 +34,7 @@ def login():
 
         account_id = creds['acctid']
         session = creds['session']
-
+        print('Auth Success')
         return True
     else:
         print('Auth Failure Sensaphone Account ', r['result'])
@@ -79,7 +80,7 @@ def sensaphone_request(url, data):
         r = json.loads(response.text)
 
         if r['result']['success']:
-            print('API Request Success!\n' + url)
+            print('API Request Success! ' + urlparse(url).path)
             return r
         else:
             if r['result']['code'] == 2:
