@@ -14,7 +14,7 @@ Resources:
       Runtime: python3.7
       Description: ''
       MemorySize: 128
-      Timeout: 3
+      Timeout: 60
       Role: 'arn:aws:iam::421269454553:role/service-role/Well_3-role-n859ml4d'
       Events:
         Schedule1:
@@ -22,12 +22,37 @@ Resources:
           Properties:
             Description: "Turn On Well #3 Pump"
             Name: "well3-on"
-            Input: '{"pump": "on"}'
+            Input: '{"pump": "on", "reason": "12AM"}'
             Schedule: cron(00 08 * * ? *)
         Schedule2:
           Type: Schedule
           Properties:
             Description: "Turn Off Well #3 Pump"
             Name: "well3-off"
-            Input: '{"pump": "off"}'
+            Input: '{"pump": "off", "reason": "1AM"}'
             Schedule: cron(00 09 * * ? *)
+  tank88k:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      CodeUri: 88k_tank/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Description: ''
+      MemorySize: 128
+      Timeout: 60
+      Role:
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Description: "Turn On 88k 5hp Pump - 9PM"
+            Name: "88kpump-on"
+            Input: '{"pump": "on", "reason": "9PM"}'
+            Schedule: cron(00 05 * * ? *)
+        Schedule2:
+          Type: Schedule
+          Properties:
+            Description: "88k Tank Hourly (5m past) Check"
+            Name: "88kpump-hourly"
+            Input: '{"pump": "", "reason": "Hourly"}'
+            Schedule: cron(05 * * * ? *)

@@ -1,32 +1,52 @@
-import sensaphone
+from pysensaphone import sensaphone_auth
+from pysensaphone import get_sensaphone
+from pysensaphone import set_sensaphone
 
 
 def lambda_handler(event, context):
 
-    if sensaphone.check_valid_session():
-        # Well #3
-        device_id = 45275
-        # Sentinel Output
-        zone_id = 26
+    creds = sensaphone_auth.check_valid_session()
 
-        if event['pump'] == 'off':
-            pump_value = 0
-        elif event['pump'] == 'on':
-            pump_value = 1
-        else:
-            pump_value = None
-            data = 'Invalid Pump Value!'
+    devices = get_sensaphone.system_status(creds)
+    # Current System Status
+    for d in devices:
+        if d['name'] == 'Well#3':
+            # Well#3 Sentinel
+            device_id = d['device_id']
+            is_online = d['is_online']
+            power = d['power_value']
+            for z in d['zone']:
+                if z['name'] == '#3 Well Pump':
+                    pump_well3 = z['value']
+                    # Output #1 - Well#3 Pump
+                    zone_id = z['zone_id']
 
-        # Set Well#3 Output
-        data = sensaphone.change_device_output(device_id, zone_id, pump_value)
-
+    if event['pump'] == 'off':
+        pump_value = 0
+    elif event['pump'] == 'on':
+        pump_value = 1
     else:
-        data = 'Auth failed to Sensaphone!'
+        pump_value = None
+        data = 'Invalid Pump Value!'
+
+    # Set Well#3 Output
+    if power == "On" and pump_value is not None:
+        data = set_sensaphone.change_device_output(creds, device_id, zone_id, pump_value)
+        if data['result']['success']:
+            status_code = 200
+        else:
+            status_code = data['result']['code']
+    else:
+        status_code = 400
+        data = None
 
     return {
-        "statusCode": 200,
+        "statusCode": status_code,
         "body": {
-            "message": "Well#3 Output Change: " + event['pump'],
-            "data": data
+            "zone": "Well#3 Output Change - " + event['pump'],
+            "summary": event,
+            "data": data,
+            "system_status": devices
         },
     }
+

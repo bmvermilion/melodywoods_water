@@ -1,1 +1,2 @@
-requests
+#git+file:///Users/bvermilion/PycharmProjects/pysensaphone@master#egg=pysensaphone
+pysensaphone-0.3.tar.gz
