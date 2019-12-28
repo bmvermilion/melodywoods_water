@@ -1,6 +1,7 @@
 from pysensaphone import sensaphone_auth
 from pysensaphone import get_sensaphone
 from pysensaphone import set_sensaphone
+import json
 
 
 def lambda_handler(event, context):
@@ -40,7 +41,7 @@ def lambda_handler(event, context):
         status_code = 400
         data = None
 
-    return {
+    result = {
         "statusCode": status_code,
         "body": {
             "zone": "Well#3 Output Change - " + event['pump'],
@@ -49,4 +50,6 @@ def lambda_handler(event, context):
             "system_status": devices
         },
     }
+    print(json.dumps(result))
+    return result
 
