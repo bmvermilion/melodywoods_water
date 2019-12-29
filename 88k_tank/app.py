@@ -42,11 +42,11 @@ def lambda_handler(event, context):
         if level_88k > shutoff_level:
             # Turn off pump as 88k is full
             pump_value = 0
-            msg = '88k Level High' + level_88k
+            msg = '88k Level High ' + str(level_88k)
         elif level_88k < turnon_level:
             # Turn on pump 88k is low, likely have a leak or high usage.
             pump_value = 1
-            msg = '88k Level Low' + level_88k
+            msg = '88k Level Low ' + str(level_88k)
         else:
             # No Output Changes needed
             pump_value = None
