@@ -6,7 +6,7 @@ import json
 
 def lambda_handler(event, context):
 
-    shutoff_level = 23.4
+    shutoff_level = 23.3
     turnon_level = 20
 
     creds = sensaphone_auth.check_valid_session()

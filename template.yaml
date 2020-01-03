@@ -9,28 +9,41 @@ Resources:
   well3:
     Type: "AWS::Serverless::Function"
     Properties:
-      CodeUri: well3/
+      CodeUri: supply/
       Handler: app.lambda_handler
       Runtime: python3.7
       Description: ''
       MemorySize: 128
       Timeout: 60
-      Role: 'arn:aws:iam::421269454553:role/service-role/Well_3-role-n859ml4d'
       Events:
         Schedule1:
           Type: Schedule
           Properties:
             Description: "Turn On Well #3 Pump"
             Name: "well3-on"
-            Input: '{"pump": "on", "reason": "12AM"}'
-            Schedule: cron(00 08 * * ? *)
+            Input: '{"sentinel_name":"Well#3","pump_name": "#3 Well Pump", "pump": "on", "reason": "9PM"}'
+            Schedule: cron(00 05 * * ? *)
         Schedule2:
           Type: Schedule
           Properties:
             Description: "Turn Off Well #3 Pump"
             Name: "well3-off"
-            Input: '{"pump": "off", "reason": "1AM"}'
-            Schedule: cron(00 09 * * ? *)
+            Input: '{"sentinel_name":"Well#3","pump_name": "#3 Well Pump", "pump": "off", "reason": "9AM"}'
+            Schedule: cron(00 17 * * ? *)
+        Schedule3:
+          Type: Schedule
+          Properties:
+            Description: "Turn On Spring Pump"
+            Name: "spring-on"
+            Input: '{"sentinel_name":"TreatmentPlant","pump_name": "Spring Pump", "pump": "on", "reason": "9PM"}'
+            Schedule: cron(00 05 * * ? *)
+          Schedule4:
+            Type: Schedule
+            Properties:
+              Description: "Turn Off Spring Pump"
+              Name: "spring-off"
+              Input: '{"sentinel_name":"TreatmentPlant","pump_name": "Spring Pump", "pump": "off", "reason": "9AM"}'
+              Schedule: cron(00 17 * * ? *)
   tank88k:
     Type: "AWS::Serverless::Function"
     Properties:
