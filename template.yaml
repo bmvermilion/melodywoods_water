@@ -37,13 +37,13 @@ Resources:
             Name: "spring-on"
             Input: '{"sentinel_name":"TreatmentPlant","pump_name": "Spring Pump", "pump": "on", "reason": "9PM"}'
             Schedule: cron(00 05 * * ? *)
-          Schedule4:
-            Type: Schedule
-            Properties:
-              Description: "Turn Off Spring Pump"
-              Name: "spring-off"
-              Input: '{"sentinel_name":"TreatmentPlant","pump_name": "Spring Pump", "pump": "off", "reason": "9AM"}'
-              Schedule: cron(00 17 * * ? *)
+        Schedule4:
+          Type: Schedule
+          Properties:
+            Description: "Turn Off Spring Pump"
+            Name: "spring-off"
+            Input: '{"sentinel_name":"TreatmentPlant","pump_name": "Spring Pump", "pump": "off", "reason": "9AM"}'
+            Schedule: cron(00 17 * * ? *)
   tank88k:
     Type: "AWS::Serverless::Function"
     Properties:

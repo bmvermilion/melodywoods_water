@@ -55,7 +55,7 @@ def lambda_handler(event, context):
     result = {
         "statusCode": status_code,
         "body": {
-            "summary": event['sentinel_name'] + event['pump_name'] + " Change - " + event['pump'],
+            "summary": event['sentinel_name'] + ' ' + event['pump_name'] + " Change - " + event['pump'],
             "msg": msg,
             "requested_change": event,
             "response_data": data,
