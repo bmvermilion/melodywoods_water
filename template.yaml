@@ -6,7 +6,7 @@ Description: >
   SAM Template for melody-woods-water
 
 Resources:
-  well3:
+  supply:
     Type: "AWS::Serverless::Function"
     Properties:
       CodeUri: supply/
@@ -28,8 +28,8 @@ Resources:
           Properties:
             Description: "Turn Off Well #3 Pump"
             Name: "well3-off"
-            Input: '{"sentinel_name":"Well#3","pump_name": "#3 Well Pump", "pump": "off", "reason": "9AM"}'
-            Schedule: cron(00 17 * * ? *)
+            Input: '{"sentinel_name":"Well#3","pump_name": "#3 Well Pump", "pump": "off", "reason": "11PM"}'
+            Schedule: cron(00 07 * * ? *)
         Schedule3:
           Type: Schedule
           Properties:
