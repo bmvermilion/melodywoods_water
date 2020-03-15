@@ -19,29 +19,36 @@ Resources:
         Schedule1:
           Type: Schedule
           Properties:
-            Description: "Turn On Well #3 Pump"
-            Name: "well3-on"
+            Description: "Turn On Well #3 Pump - 9PM"
+            Name: "well3-on-9pm"
             Input: '{"sentinel_name":"Well#3","pump_name": "#3 Well Pump", "pump": "on", "reason": "9PM"}'
             Schedule: cron(00 05 * * ? *)
         Schedule2:
           Type: Schedule
           Properties:
-            Description: "Turn Off Well #3 Pump"
-            Name: "well3-off"
-            Input: '{"sentinel_name":"Well#3","pump_name": "#3 Well Pump", "pump": "off", "reason": "11PM"}'
-            Schedule: cron(00 07 * * ? *)
+            Description: "Turn Off Well #3 Pump - 10PM"
+            Name: "well3-off-10pm"
+            Input: '{"sentinel_name":"Well#3","pump_name": "#3 Well Pump", "pump": "off", "reason": "10PM"}'
+            Schedule: cron(00 06 * * ? *)
         Schedule3:
           Type: Schedule
           Properties:
-            Description: "Turn On Spring Pump"
-            Name: "spring-on"
-            Input: '{"sentinel_name":"TreatmentPlant","pump_name": "Spring Pump", "pump": "on", "reason": "9PM"}'
-            Schedule: cron(00 05 * * ? *)
+            Description: "Turn Off Well #3 Pump - 9AM"
+            Name: "well3-off-9am"
+            Input: '{"sentinel_name":"Well#3","pump_name": "#3 Well Pump", "pump": "off", "reason": "9AM"}'
+            Schedule: cron(00 17 * * ? *)
         Schedule4:
           Type: Schedule
           Properties:
-            Description: "Turn Off Spring Pump"
-            Name: "spring-off"
+            Description: "Turn On Spring Pump - 9PM"
+            Name: "spring-on-9pm"
+            Input: '{"sentinel_name":"TreatmentPlant","pump_name": "Spring Pump", "pump": "on", "reason": "9PM"}'
+            Schedule: cron(00 05 * * ? *)
+        Schedule5:
+          Type: Schedule
+          Properties:
+            Description: "Turn Off Spring Pump - 9AM"
+            Name: "spring-off-9am"
             Input: '{"sentinel_name":"TreatmentPlant","pump_name": "Spring Pump", "pump": "off", "reason": "9AM"}'
             Schedule: cron(00 17 * * ? *)
   tank88k:
@@ -59,9 +66,9 @@ Resources:
           Type: Schedule
           Properties:
             Description: "Turn On 88k 5hp Pump - 9PM"
-            Name: "88kpump-on"
+            Name: "88kpump-on-9pm"
             Input: '{"pump": "on", "reason": "9PM"}'
-            Schedule: cron(00 05 * * ? *)
+            Schedule: cron(00 04,05 * * ? *)
         Schedule2:
           Type: Schedule
           Properties:
