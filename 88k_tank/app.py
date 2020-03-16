@@ -1,7 +1,7 @@
 from pysensaphone import sensaphone_auth
 from pysensaphone import set_sensaphone
 from pysensaphone import get_sensaphone
-#import json
+import json
 import datetime
 import dateutil.tz
 
@@ -103,5 +103,6 @@ def lambda_handler(event, context):
             "system_status": devices
         },
     }
-    #print(json.dumps(result))
+    # This is to record what happens in CloudWatch logs. For some reason return value is not logged.
+    print(json.dumps(result))
     return result
