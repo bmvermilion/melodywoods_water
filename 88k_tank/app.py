@@ -55,7 +55,7 @@ def lambda_handler(event, context):
         else:
             pump_value = None
             msg = 'Currently ' + current_pacific_time.strftime("%I%p %Z") + ' / '\
-                  + current_utc_time.strftime("%I%p %Z") + ' - Pump will turn On at 9PM Pacific'
+                  + current_utc_time.strftime("%I%p %Z") + ' - Pump will turn ' + event['pump'] + ' at 9PM Pacific'
     else:
         if level_88k > shutoff_level:
             # Turn Off pump as 88k is full
