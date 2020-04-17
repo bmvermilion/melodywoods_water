@@ -83,3 +83,23 @@ Resources:
             Name: "88kpump-hourly"
             Input: '{"pump": "", "reason": "Hourly"}'
             Schedule: cron(05 * * * ? *)
+  email:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: email/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Description: ''
+      MemorySize: 128
+      Timeout: 60
+    PermissionToCallLambdaAbove:
+      Type: AWS::Lambda::Permission
+      DependsOn: email
+      Properties:
+        Action: lambda:InvokeFunction
+        FunctionName: !Ref email
+        Principal: !Sub 'workmail.${AWS::Region}.amazonaws.com'
+
+Outputs:
+  emailArn:
+    Value: !GetAtt email.Arn

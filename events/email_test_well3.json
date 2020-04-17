@@ -1,0 +1,19 @@
+{
+    "summaryVersion": "2019-07-28",
+    "envelope": {
+        "mailFrom": {
+            "address": "alerts@sensaphone.net"
+        },
+        "recipients": [
+            {
+                "address": "controls@melodywoods.awsapps.com"
+            }
+        ]
+    },
+    "truncated": false,
+    "sender": null,
+    "subject": "Zone Alarm",
+    "messageId": "ae562ce4-83bd-3963-b721-c3b272c6266a",
+    "invocationId": "b29df50d484cc366e6eedb68fe15908006a09d5a",
+    "flowDirection": "INBOUND"
+}

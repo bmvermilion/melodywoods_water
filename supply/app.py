@@ -69,6 +69,16 @@ def lambda_handler(event, context):
                 status_code = 400
                 msg = 'Invalid Time Format! Check Template Payload'
                 data = None
+        elif event['reason']['type'].lower() == 'email_alarm':
+            if event['pump'] == 'on':
+                pump_value = 1
+            elif event['pump'] == 'off':
+                pump_value = 0
+            else:
+                pump_value = None
+                status_code = 400
+                msg = 'Invalid Pump Value! Check Template Payload'
+                data = None
         else:
             pump_value = None
             status_code = 400
