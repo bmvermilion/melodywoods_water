@@ -5,11 +5,11 @@ import json
 import datetime
 import dateutil.tz
 
+
 def lambda_handler(event, context):
 
     shutoff_level = 23.3
     shutoff_noon_level = 23.0
-    turnon_level = 20
 
     # Get current Pacific time. AWS Lambda event triggers operate in UTC.
     pacific = dateutil.tz.gettz('US/Pacific')
@@ -61,15 +61,14 @@ def lambda_handler(event, context):
             # Turn Off pump as 88k is full
             pump_value = 0
             msg = '88k Level at High Limit ' + str(level_88k)
-        elif level_88k > shutoff_noon_level and current_pacific_time.hour >= 12:
+        elif level_88k > shutoff_noon_level and (12 <= current_pacific_time.hour < 21):
             # If it is after 12PM/Noon and 88k tank is > 23ft shutoff 5hp
             # Attempt to even out, pumping during lower $/kW when water usage is higher
             pump_value = 0
             msg = '88k Level at Noon High Limit ' + str(level_88k)
-        elif level_88k < turnon_level:
-            # Turn on pump 88k is low, likely have a leak or very very high usage.
+        elif level_88k <= shutoff_noon_level and current_pacific_time.hour <= 7:
             pump_value = 1
-            msg = '88k Level Low ' + str(level_88k)
+            msg = '88k Level Morning Low Optimization ' + str(level_88k)
         else:
             # No Output Changes needed
             pump_value = None
