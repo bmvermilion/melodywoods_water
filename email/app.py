@@ -5,12 +5,14 @@ import re
 import json
 
 ''' How to test/debug
-    1. Generate recent alert (needs to be same day?), by changing Alarm Low or High within the Sensaphone 'Configure Device' screen for a Zone/Sensor.
-    2. Look at AWS CloudWatch logs a grab the JSON with the 'messageId' and place in events test JSON files. Ex. ../events/email_test_well3.json
+    https://docs.aws.amazon.com/workmail/latest/adminguide/lambda-content.html
+    1. Generate recent alert (needs to be in last 24hrs), by changing Alarm Low or High within the Sensaphone 'Configure Device' screen for a Zone/Sensor.
+    2. Look at AWS CloudWatch logs and grab the JSON with the 'messageId' and place in events test JSON files. Ex. ../events/email_test_well3.json
     3. Make your code changes, if needed.
     4. Make local build to test with, run:  sam build --use-container --template ../template.yaml
     5. Run Lambda locally with test event:  sam local invoke email -e ../events/email_test_well3.json
 '''
+
 
 def lambda_handler(event, context):
     msg = []
