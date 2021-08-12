@@ -5,6 +5,10 @@ import re
 import json
 import logging
 
+# quiet boto3 message, "Found credentials in environment variables."
+logging.getLogger("boto3").setLevel(logging.WARNING)
+logging.getLogger("botocore").setLevel(logging.WARNING)
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
