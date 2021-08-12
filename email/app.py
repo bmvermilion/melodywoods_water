@@ -3,11 +3,17 @@ import email
 import os
 import re
 import json
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 ''' How to test/debug
     https://docs.aws.amazon.com/workmail/latest/adminguide/lambda-content.html
-    1. Generate recent alert (needs to be in last 24hrs), by changing Alarm Low or High within the Sensaphone 'Configure Device' screen for a Zone/Sensor.
-    2. Look at AWS CloudWatch logs and grab the JSON with the 'messageId' and place in events test JSON files. Ex. ../events/email_test_well3.json
+    1. Generate recent alert (needs to be in last 24hrs), by changing Alarm Low or High within
+        Sensaphone 'Configure Device' screen for a Zone/Sensor.
+    2. Look at AWS CloudWatch logs and grab the JSON with the 'messageId' and place in events test JSON files.
+        Ex. ../events/email_test_well3.json
     3. Make your code changes, if needed.
     4. Make local build to test with, run:  sam build --use-container --template ../template.yaml
     5. Run Lambda locally with test event:  sam local invoke email -e ../events/email_test_well3.json
@@ -16,8 +22,8 @@ import json
 
 def lambda_handler(event, context):
     msg = []
-    # event['messageId'] contains id to retrieve complete email from WorkMail
-    print(json.dumps(event))
+    # event['messageId'] contains id to retrieve complete email from WorkMail (in last 24hrs)
+    logger.info(json.dumps(event))
     workmail = boto3.client('workmailmessageflow', region_name=os.environ["AWS_REGION"])
 
     # get email
@@ -38,7 +44,7 @@ def lambda_handler(event, context):
         body = parsed_msg.get_payload(decode=True)
 
     # log email body
-    print(body.decode('UTF-8'))
+    logger.info(body.decode('UTF-8'))
 
     # parse body of email
     email_lines = body.splitlines()
@@ -48,12 +54,13 @@ def lambda_handler(event, context):
             sentinel = email_lines[idx + 1].decode('utf-8')
             # Well#3 / TreatmentPlant etc
 
-        # what alerted? looking for CL Barrel Low Alarm
+        # what alerted?
+        # looking for CL Barrel Low Alarm
         elif 'alarm' in str(l):
             alert_details = str(l).split('. ')
             cl_alert = re.search(r"Low level alarm .+ Chlorine Barrel Level", str(alert_details[0]), re.I)
             cl_level = re.search(r"\d+\.\d+", alert_details[2])[0]
-            print('cl_level= ', cl_level, 'float()', float(cl_level), 'float(cl_level) > 0', float(cl_level) > 0)
+            logger.info('cl_level= ', cl_level, 'float()', float(cl_level), 'float(cl_level) > 0', float(cl_level) > 0)
 
             # valid alert? if reading is > 0. If we lost power value will be negative.
             if cl_alert and float(cl_level) > 0:
@@ -71,12 +78,13 @@ def lambda_handler(event, context):
                     msg.append(invoke_supply_lambda(well3))
                 else:
                     msg = 'Unknown Sentinel, no mapping of pumps to turn off'
+                    logger.error(msg)
 
     if not msg:
-        msg = 'Email Alert body does not match - no-op'
+        msg = 'Email Alert body has no match - no-op'
 
     # This is to record what happens in CloudWatch logs. For some reason return value is not logged.
-    print(json.dumps(msg))
+    logger.info(json.dumps(msg))
     return msg
 
 
