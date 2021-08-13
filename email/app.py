@@ -48,7 +48,7 @@ def lambda_handler(event, context):
         body = parsed_msg.get_payload(decode=True)
 
     # log email body
-    logger.info(body.decode('UTF-8'))
+    logger.info(json.dumps({'email_body': body.decode('UTF-8')}))
 
     # parse body of email
     email_lines = body.splitlines()
