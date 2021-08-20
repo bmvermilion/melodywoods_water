@@ -96,6 +96,7 @@ def lambda_handler(event, context):
             msg = 'Failure'
     else:
         # Reason or Err Msg should already be set
+        status_code = 409
         event['pump'] = 'None'
 
     result = {
