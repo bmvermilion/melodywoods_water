@@ -63,8 +63,9 @@ def lambda_handler(event, context):
         elif 'alarm' in str(l):
             alert_details = str(l).split('. ')
             cl_alert = re.search(r"Low level alarm .+ Chlorine Barrel Level", str(alert_details[0]), re.I)
-            cl_level = re.search(r"\d+\.\d+", alert_details[2])[0]
-            logger.info('cl_level= ', cl_level, 'float()', float(cl_level), 'float(cl_level) > 0', float(cl_level) > 0)
+            cl_level = re.search(r"-?\d+\.\d+", alert_details[2])[0]
+
+            logger.info("Valid alert to take action? " + str(cl_alert and float(cl_level) > 0))
 
             # valid alert? if reading is > 0. If we lost power value will be negative.
             if cl_alert and float(cl_level) > 0:
