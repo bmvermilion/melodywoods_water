@@ -22,7 +22,7 @@ Resources:
             Description: "Well #3 Pump - Timer/Parameter Control"
             Name: "well3-timer"
             Input: '{"sentinel_name":"Well#3","pump_name": "#3 Well Pump", "pump": "", "reason": {"type": "well3"}}'
-            Schedule: cron(*/15 * * * *)
+            Schedule: cron(0/15 * * * *)
   tank88k:
     Type: "AWS::Serverless::Function"
     Properties:
