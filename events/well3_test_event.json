@@ -1,1 +1,1 @@
-{"sentinel_name":"Well#3","pump_name": "#3 Well Pump", "pump": "on", "reason": {"type": "24hr", "value": "21"}}
+{"sentinel_name":"Well#3","pump_name": "#3 Well Pump", "pump": "off", "reason": {"type": "well3"}}
