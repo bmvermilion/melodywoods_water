@@ -70,11 +70,12 @@ def well3_timer_offset(timer):
     return timer_minutes
 
 
-def change_pump(creds, device_id, zone_id, power, current_pump_value, requested_pump_value):
+def change_pump(event, creds, device_id, zone_id, power, current_pump_value, requested_pump_value):
     """
         Change pump output.
 
         Parameters:
+            event (dict): Lambda event payload
             creds (dict): Sensaphone.net credentials
             device_id (int): Sentinel Device ID to change output
             zone_id (int): Output Zone ID to change output
@@ -89,14 +90,20 @@ def change_pump(creds, device_id, zone_id, power, current_pump_value, requested_
         """
 
     data = None
+    event['pump'] = None
     if requested_pump_value.lower() == current_pump_value.lower():
         status_code = 200
         msg = 'Requested Pump Value Change Not Required, Value Already Set'
-    elif power == "On" and pump_value is not None:
+    elif power == "On":
+        if requested_pump_value.lower() == 'on':
+            pump_value = 1
+        else:
+            pump_value = 0
         data = set_sensaphone.change_device_output(creds, device_id, zone_id, pump_value)
         if data['result']['success']:
             status_code = 200
             msg = 'Success'
+            event['pump'] = requested_pump_value
         else:
             status_code = data['result']['code']
             msg = 'Failure'
@@ -126,7 +133,7 @@ def log_result(status_code, event, msg, data, devices):
     result = {
         "statusCode": status_code,
         "body": {
-            "summary": event['sentinel_name'] + ' ' + event['pump_name'] + ' Change - ' + event['pump'],
+            "summary": event['sentinel_name'] + ' - ' + event['pump_name'] + ' Change - ' + str(event['pump']),
             "msg": msg,
             "requested_change": event,
             "response_data": data,
@@ -167,19 +174,19 @@ def lambda_handler(event, context):
 
         # Timer in last 15 mins take action.
         # AWS Lambda cron is set to run every 15 mins.
-        if 15 >= well3_on_mins >= -1:
-            poutput = change_pump(creds, device_id, zone_id, power, current_pump_value, 'on')
-        elif 15 >= well3_off_mins >= -1:
-            poutput = change_pump(creds, device_id, zone_id, power, current_pump_value, 'off')
+        if 15 > well3_on_mins >= -1:
+            poutput = change_pump(event, creds, device_id, zone_id, power, current_pump_value, 'on')
+        elif 15 > well3_off_mins >= -1:
+            poutput = change_pump(event, creds, device_id, zone_id, power, current_pump_value, 'off')
         else:
             status_code = 200
             msg = 'Well3 - Not time to change pump output'
     # Pump change based on content of email alert from Sensaphone.
     elif event['reason']['type'].lower() == 'email_alarm':
         if event['pump'] == 'on':
-            poutput = change_pump(creds, device_id, zone_id, power, current_pump_value, 'on')
+            poutput = change_pump(event, creds, device_id, zone_id, power, current_pump_value, 'on')
         elif event['pump'] == 'off':
-            poutput = change_pump(creds, device_id, zone_id, power, current_pump_value, 'off')
+            poutput = change_pump(event, creds, device_id, zone_id, power, current_pump_value, 'off')
         else:
             status_code = 400
             msg = 'Invalid Pump Value! Check Template Payload'
