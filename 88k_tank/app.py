@@ -66,13 +66,12 @@ def lambda_handler(event, context):
             # Attempt to even out, pumping during lower $/kW when water usage is higher
             pump_value = 0
             msg = '88k Level at Noon High Limit ' + str(level_88k)
-        elif level_88k <= shutoff_noon_level and current_pacific_time.hour <= 7:
+        elif level_88k < shutoff_noon_level and current_pacific_time.hour <= 7:
             pump_value = 1
             msg = '88k Level Morning Low Optimization ' + str(level_88k)
         else:
             # No Output Changes needed
             pump_value = None
-
 
     # Set 88k Output
     if tp_power == "On" and pump_value is not None:
