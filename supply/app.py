@@ -168,7 +168,7 @@ def lambda_handler(event, context):
                     zone_id = z['zone_id']
                     current_pump_value = z['value']
 
-    if event['reason']['type'].lower() in ('well3', 'well5', 'spring'):
+    if event['reason']['type'].lower() in ['well3', 'well5', 'spring']:
         reason = event['reason']['type'].lower()
 
         # Get Timer Settings from AWS Systems Manger Parameter Store
