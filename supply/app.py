@@ -16,7 +16,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def well3_get_ssm_param(param_name):
+def get_ssm_param(param_name):
     """
     Retrieve adjustable parameters for Well ON/OFF times which are stored in AWS Systems Manager - Parameter Store
     https://us-west-2.console.aws.amazon.com/systems-manager/parameters/?region=us-west-2&tab=Table
@@ -42,7 +42,7 @@ def well3_get_ssm_param(param_name):
     return param
 
 
-def well3_timer_offset(timer):
+def timer_offset(timer):
     """
     Takes pump timer (HH:MM) and returns the minutes until timer from current time.
     Parameters:
@@ -63,9 +63,9 @@ def well3_timer_offset(timer):
     # Difference in between timer and current time
     timer_minutes = (timestamp - current_pacific_time).total_seconds() / 60
 
-    logger.info('Current Pacific Time: {a} \n Well#3 Timer Change Timestamp: {b}'.format(a=current_pacific_time
-                                                                                         , b=timestamp))
-    logger.info('Minutes until Well#3 Change: {a:.2f}'.format(a=timer_minutes))
+    logger.info('Current Pacific Time: {a} \n Timer Change Timestamp: {b}'.format(a=current_pacific_time
+                                                                                  , b=timestamp))
+    logger.info('Minutes until Change: {a:.2f}'.format(a=timer_minutes))
 
     return timer_minutes
 
@@ -129,11 +129,13 @@ def log_result(status_code, event, msg, data, devices):
         Returns:
             dict: dictionary of what happened during the Lambda execution
     """
+    if not event['pump']:
+        event['pump'] = 'None'
 
     result = {
         "statusCode": status_code,
         "body": {
-            "summary": event['sentinel_name'] + ' - ' + event['pump_name'] + ' Change - ' + str(event['pump']),
+            "summary": event['sentinel_name'] + ' - ' + event['pump_name'] + ' Change - ' + event['pump'],
             "msg": msg,
             "requested_change": event,
             "response_data": data,
@@ -146,6 +148,8 @@ def log_result(status_code, event, msg, data, devices):
 
 
 def lambda_handler(event, context):
+    params = {'well3': ['well3_on', 'well3_off'], 'well5': ['well5_on', 'well5_off'],
+              'spring': ['spring_on', 'spring_off']}
     # Login to sensaphone.net
     creds = sensaphone_auth.check_valid_session()
     # Get Current System Status
@@ -164,27 +168,47 @@ def lambda_handler(event, context):
                     zone_id = z['zone_id']
                     current_pump_value = z['value']
 
-    if event['reason']['type'].lower() == 'well3':
+    if event['reason']['type'].lower() in ('well3', 'well5', 'spring'):
+        reason = event['reason']['type'].lower()
+
         # Get Timer Settings from AWS Systems Manger Parameter Store
-        well3_on = well3_get_ssm_param('well3_on')
-        well3_off = well3_get_ssm_param('well3_off')
+        on = get_ssm_param(params[reason][0])
+        off = get_ssm_param(params[reason][1])
         # Minutes until or since timer
-        well3_on_mins = well3_timer_offset(well3_on)
-        well3_off_mins = well3_timer_offset(well3_off)
+        on_mins = timer_offset(on)
+        off_mins = timer_offset(off)
 
         # Timer in last 15 mins take action.
         # AWS Lambda cron is set to run every 15 mins.
-        if 15 > well3_on_mins >= -1:
+        if 15 > on_mins >= -1:
             poutput = change_pump(event, creds, device_id, zone_id, power, current_pump_value, 'on')
-        elif 15 > well3_off_mins >= -1:
+        elif 15 > off_mins >= -1:
             poutput = change_pump(event, creds, device_id, zone_id, power, current_pump_value, 'off')
         else:
             status_code = 200
-            msg = 'Well3 - Not time to change pump output'
+            msg = reason + ' - Not time to change pump output'
+
     # Pump change based on content of email alert from Sensaphone.
     elif event['reason']['type'].lower() == 'email_alarm':
         if event['pump'] == 'on':
-            poutput = change_pump(event, creds, device_id, zone_id, power, current_pump_value, 'on')
+            if event['pump_name'] == '#3 Well Pump':
+                # Get Timer Settings from AWS Systems Manger Parameter Store
+                well3_on_hour = int(get_ssm_param('well3_on').split(":")[0])
+                well3_off_hour = int(get_ssm_param('well3_off').split(":")[0])
+
+                # Get current Pacific time. AWS Lambda event triggers operate in UTC.
+                pacific = dateutil.tz.gettz('US/Pacific')
+                current_pacific_hour = datetime.datetime.now(tz=pacific).hour
+
+                # it is currently between turn on and turn off times.
+                if (current_pacific_hour >= well3_on_hour) or (current_pacific_hour <= well3_off_hour):
+                    poutput = change_pump(event, creds, device_id, zone_id, power, current_pump_value, 'on')
+                else:
+                    status_code = 200
+                    msg = event['reason']['type'].lower() + ' Well#3 - Not time to change pump output'
+            # tend to run #5 / Spring 24/7.
+            else:
+                poutput = change_pump(event, creds, device_id, zone_id, power, current_pump_value, 'on')
         elif event['pump'] == 'off':
             poutput = change_pump(event, creds, device_id, zone_id, power, current_pump_value, 'off')
         else:

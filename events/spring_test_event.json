@@ -1,1 +1,8 @@
-{"sentinel_name":"TreatmentPlant","pump_name": "Spring Pump", "pump": "on", "reason": {"type": "24hr", "value": "10"}}
+{
+  "sentinel_name": "TreatmentPlant",
+  "pump_name": "Spring Pump",
+  "pump": "off",
+  "reason": {
+    "type": "spring"
+  }
+}

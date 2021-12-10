@@ -23,6 +23,22 @@ Resources:
             Name: "well3-timer"
             Input: '{"sentinel_name":"Well#3","pump_name": "#3 Well Pump", "pump": "", "reason": {"type": "well3"}}'
             Schedule: cron(0/15 * * * ? *)
+        Schedule2:
+          Type: Schedule
+          Properties:
+            Description: "Well #5 Pump - Timer/Parameter Control"
+            Name: "well5-timer"
+            Input: '{"sentinel_name":"Well#5","pump_name": "#5 Well Pump", "pump": "", "reason": {"type": "well5"}}'
+            Schedule: cron(0/15 * * * ? *)
+            Enabled: false
+        Schedule3:
+          Type: Schedule
+          Properties:
+            Description: "Spring Pump - Timer/Parameter Control"
+            Name: "spring-timer"
+            Input: '{"sentinel_name":"TreatmentPlant","pump_name": "Spring Pump", "pump": "", "reason": {"type": "spring"}}'
+            Schedule: cron(0/15 * * * ? *)
+            Enabled: false
   tank88k:
     Type: "AWS::Serverless::Function"
     Properties:

@@ -1,8 +1,9 @@
 {
   "sentinel_name": "Well#3",
   "pump_name": "#3 Well Pump",
-  "pump": "off",
+  "pump": "on",
   "reason": {
-    "type": "well3"
+    "type": "email_alarm",
+    "value": true
   }
 }

@@ -1,1 +1,4 @@
-{"pump": "off", "reason": "TEST"}
+{
+  "pump": "off",
+  "reason": "TEST"
+}
