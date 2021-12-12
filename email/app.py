@@ -24,10 +24,16 @@ logger.setLevel(logging.INFO)
 '''
 
 
-def lambda_handler(event, context):
-    msg = []
-    # event['messageId'] contains id to retrieve complete email from WorkMail (in last 24hrs)
-    logger.info(json.dumps(event))
+def get_email(event):
+    """
+        Takes event payload and uses messageId to extract email body.
+        Parameters:
+            event (dict): Contains event payload from Lambda.
+
+        Returns:
+            str: email body.
+        """
+    # event['messageId'] contains id to retrieve complete email from WorkMail (only for emails in last 24hrs)
     workmail = boto3.client('workmailmessageflow', region_name=os.environ["AWS_REGION"])
 
     # get email
@@ -49,9 +55,26 @@ def lambda_handler(event, context):
 
     # log email body
     logger.info(json.dumps({'email_body': body.decode('UTF-8')}))
+    print(type(body))
+    return body
+
+
+def lambda_handler(event, context):
+    msg = []
+
+    spring = {"sentinel_name": "TreatmentPlant", "pump_name": "Spring Pump", "pump": "off",
+              "reason": {"type": "email_alarm", "value": True}}
+    well3 = {"sentinel_name": "Well#3", "pump_name": "#3 Well Pump", "pump": "off",
+             "reason": {"type": "email_alarm", "value": True}}
+    """
+    well5 = {"sentinel_name": "Well#3", "pump_name": "#5 Well Pump", "pump": "off",
+             "reason": {"type": "email_alarm", "value": True}}
+    """
+    logger.info(json.dumps(event))
+    email_body = get_email(event)
 
     # parse body of email
-    email_lines = body.splitlines()
+    email_lines = email_body.splitlines()
     for idx, l in enumerate(email_lines):
         # from which Sentinel
         if 'From:' in str(l):
@@ -69,20 +92,46 @@ def lambda_handler(event, context):
 
             # valid alert? if reading is > 0. If we lost power value will be negative.
             if cl_alert and float(cl_level) > 0:
-                spring = {"sentinel_name": "TreatmentPlant", "pump_name": "Spring Pump", "pump": "off",
-                          "reason": {"type": "email_alarm", "value": True}}
-                well3 = {"sentinel_name": "Well#3", "pump_name": "#3 Well Pump", "pump": "off",
-                         "reason": {"type": "email_alarm", "value": True}}
-
                 # if CL Barrel in TP is low all the wells and spring need to be shutoff
                 if sentinel == 'TreatmentPlant':
                     msg.append(invoke_supply_lambda(spring))
                     msg.append(invoke_supply_lambda(well3))
+                    # msg.append(invoke_supply_lambda(well5))
                 # if Well3 CL Barrel is low then turn off Well3
                 elif sentinel == 'Well#3':
                     msg.append(invoke_supply_lambda(well3))
                 else:
                     msg = 'Unknown Sentinel, no mapping of pumps to turn off'
+                    logger.error(msg)
+
+        elif 'power' in str(l):
+            alert_details = str(l).split('. ')
+            power_off = re.search(r"The power is OFF", str(alert_details[0]), re.I)
+            power_on = re.search(r"The power has returned to normal", str(alert_details[0]), re.I)
+
+            if power_off:
+                if sentinel == 'TreatmentPlant':
+                    msg.append(invoke_supply_lambda(spring))
+                    msg.append(invoke_supply_lambda(well3))
+                    # msg.append(invoke_supply_lambda(well5))
+                elif sentinel == 'Well#3':
+                    msg.append(invoke_supply_lambda(well3))
+                else:
+                    msg = 'Unknown Sentinel, no mapping of pumps to turn off'
+                    logger.error(msg)
+            elif power_on:
+                spring['pump'] = 'on'
+                # Well3 turns on if it is currently in between its On/Off times based on Supply Lambda.
+                well3['pump'] = 'on'
+                # well5['pump'] = 'on'
+                if sentinel == 'TreatmentPlant':
+                    msg.append(invoke_supply_lambda(spring))
+                    msg.append(invoke_supply_lambda(well3))
+                    # msg.append(invoke_supply_lambda(well5))
+                elif sentinel == 'Well#3':
+                    msg.append(invoke_supply_lambda(well3))
+                else:
+                    msg = 'Unknown Sentinel, no mapping of pumps to turn on'
                     logger.error(msg)
 
     if not msg:
@@ -94,7 +143,7 @@ def lambda_handler(event, context):
 
 
 def invoke_supply_lambda(payload):
-    # run supply lambda to turn off wells or spring
+    # run supply lambda to turn on/off wells or spring
     lambda_client = boto3.client('lambda')
     invoke_response = lambda_client.invoke(
         FunctionName="arn:aws:lambda:us-west-2:421269454553:function:melody-woods-water-supply-1FM312GZMYD3X",
