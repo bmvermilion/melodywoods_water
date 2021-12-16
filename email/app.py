@@ -55,7 +55,6 @@ def get_email(event):
 
     # log email body
     logger.info(json.dumps({'email_body': body.decode('UTF-8')}))
-    print(type(body))
     return body
 
 
@@ -67,7 +66,7 @@ def lambda_handler(event, context):
     well3 = {"sentinel_name": "Well#3", "pump_name": "#3 Well Pump", "pump": "off",
              "reason": {"type": "email_alarm", "value": True}}
     """
-    well5 = {"sentinel_name": "Well#3", "pump_name": "#5 Well Pump", "pump": "off",
+    well5 = {"sentinel_name": "Well#5", "pump_name": "#5 Well Pump", "pump": "off",
              "reason": {"type": "email_alarm", "value": True}}
     """
     logger.info(json.dumps(event))
