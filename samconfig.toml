@@ -3,9 +3,11 @@ version = 0.1
 [default.deploy]
 [default.deploy.parameters]
 stack_name = "melody-woods-water"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-10y06n40qgez1"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1tvhxb0ku4qj7"
 s3_prefix = "melody-woods-water"
-region = "us-west-2"
+region = "us-east-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
+profile = "melody"
+image_repositories = []
 
