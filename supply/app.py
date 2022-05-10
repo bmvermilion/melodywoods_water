@@ -19,7 +19,7 @@ logger.setLevel(logging.INFO)
 def get_ssm_param(param_name):
     """
     Retrieve adjustable parameters for Well ON/OFF times which are stored in AWS Systems Manager - Parameter Store
-    https://us-west-2.console.aws.amazon.com/systems-manager/parameters/?region=us-west-2&tab=Table
+    https://us-east-1.console.aws.amazon.com/systems-manager/parameters?region=us-east-1
 
     Parameters:
         param_name (str): name of AWS Systems Manager Parameter to retrieve
@@ -118,7 +118,7 @@ def change_pump(event, creds, device_id, zone_id, power, current_pump_value, req
 def log_result(status_code, event, msg, data, devices):
     """
     Log what happened during the Lambda execution to CloudWatch
-    https://us-west-2.console.aws.amazon.com/cloudwatch/home?region=us-west-2#
+    https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups
         Parameters:
             status_code (int): HTTP Status Code from Sentinel Output change
             event (dict): event details from Lambda cron or email
