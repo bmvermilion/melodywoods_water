@@ -145,7 +145,7 @@ def invoke_supply_lambda(payload):
     # run supply lambda to turn on/off wells or spring
     lambda_client = boto3.client('lambda')
     invoke_response = lambda_client.invoke(
-        FunctionName="arn:aws:lambda:us-west-2:421269454553:function:melody-woods-water-supply-1FM312GZMYD3X",
+        FunctionName="arn:aws:lambda:us-east-1:222492554563:function:melody-woods-water-supply-SacqPDTlGjRU",
         InvocationType='Event',
         Payload=json.dumps(payload))
 
