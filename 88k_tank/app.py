@@ -10,8 +10,8 @@ import boto3
 def lambda_handler(event, context):
 
     ssm = boto3.client('ssm')
-    shutoff_level = ssm.get_parameter(Name='shutoff_level_88k')['Parameter']['Value']
-    shutoff_noon_level = ssm.get_parameter(Name='shutoff_noon_level_88k')['Parameter']['Value']
+    shutoff_level = float(ssm.get_parameter(Name='shutoff_level_88k')['Parameter']['Value'])
+    shutoff_noon_level = float(ssm.get_parameter(Name='shutoff_noon_level_88k')['Parameter']['Value'])
     # moved to parameters because of sensor drift, below were the starting values we used for a long time
     #shutoff_level = 23.3
     #shutoff_noon_level = 23.0
