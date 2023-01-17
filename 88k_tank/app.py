@@ -4,12 +4,17 @@ from pysensaphone import get_sensaphone
 import json
 import datetime
 import dateutil.tz
+import boto3
 
 
 def lambda_handler(event, context):
 
-    shutoff_level = 23.3
-    shutoff_noon_level = 23.0
+    ssm = boto3.client('ssm')
+    shutoff_level = ssm.get_parameter(Name='shutoff_level_88k')['Parameter']['Value']
+    shutoff_noon_level = ssm.get_parameter(Name='shutoff_noon_level_88k')['Parameter']['Value']
+    # moved to parameters because of sensor drift, below were the starting values we used for a long time
+    #shutoff_level = 23.3
+    #shutoff_noon_level = 23.0
 
     # Get current Pacific time. AWS Lambda event triggers operate in UTC.
     pacific = dateutil.tz.gettz('US/Pacific')
@@ -36,6 +41,8 @@ def lambda_handler(event, context):
                     zone_id = z['zone_id']
         elif d['name'] == '88kTank':
             # 88k Sentinel
+            is_online_88k = d['is_online']
+            power_88k = d['power_value']
             for z in d['zone']:
                 if z['name'] == '88k Level':
                     level_88k = float(z['value'].strip('Ft'))
@@ -74,7 +81,7 @@ def lambda_handler(event, context):
             pump_value = None
 
     # Set 88k Output
-    if tp_power == "On" and pump_value is not None:
+    if (tp_power == "On" and power_88k == "On") and pump_value is not None:
         data = set_sensaphone.change_device_output(creds, device_id, zone_id, pump_value)
         if data['result']['success']:
             status_code = 200
@@ -82,9 +89,9 @@ def lambda_handler(event, context):
             status_code = data['result']['code']
     # In the future when power Off/On email received could shut pumps Off/On
     # To avoid tripped breakers when power comes back On
-    elif tp_power == "Off":
-        msg = 'TP Power Out'
-        data = None
+    elif tp_power == "Off" or power_88k == "Off":
+        msg = 'Power Out - TP ' + tp_power + ' - 88k ' + power_88k
+        data = set_sensaphone.change_device_output(creds, device_id, zone_id, 0)
         status_code = 503
     else:
         if not msg:
