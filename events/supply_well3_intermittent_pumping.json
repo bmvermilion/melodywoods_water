@@ -1,0 +1,9 @@
+{
+  "sentinel_name": "Well#3",
+  "pump_name": "#3 Well Pump",
+  "pump": "on",
+  "reason": {
+    "type": "intermittent_pumping",
+    "value": true
+  }
+}
