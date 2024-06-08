@@ -11,7 +11,7 @@ Resources:
     Properties:
       CodeUri: supply/
       Handler: app.lambda_handler
-      Runtime: python3.7
+      Runtime: python3.11
       Description: ''
       MemorySize: 128
       Timeout: 60
@@ -44,7 +44,7 @@ Resources:
     Properties:
       CodeUri: 88k_tank/
       Handler: app.lambda_handler
-      Runtime: python3.7
+      Runtime: python3.11
       Description: ''
       MemorySize: 128
       Timeout: 60
@@ -69,7 +69,7 @@ Resources:
     Properties:
       CodeUri: email/
       Handler: app.lambda_handler
-      Runtime: python3.7
+      Runtime: python3.11
       Description: ''
       MemorySize: 128
       Timeout: 60

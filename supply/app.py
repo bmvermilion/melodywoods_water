@@ -189,7 +189,7 @@ def lambda_handler(event, context):
             msg = reason + ' - Not time to change pump output'
 
     # Pump change based on content of email alert from Sensaphone.
-    elif event['reason']['type'].lower() == 'email_alarm':
+    elif event['reason']['type'].lower() in ['email_alarm', 'intermittent_pumping']:
         if event['pump'] == 'on':
             if event['pump_name'] == '#3 Well Pump':
                 # Get Timer Settings from AWS Systems Manger Parameter Store
