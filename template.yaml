@@ -13,7 +13,7 @@ Parameters:
   DryRun:
     Type: String
     Description: Set to 'true' to skip actual Sensaphone output changes
-    Default: "true"
+    Default: "false"
     AllowedValues: ["true", "false"]
 
 Globals:
