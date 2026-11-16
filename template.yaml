@@ -5,16 +5,60 @@ Description: >
 
   SAM Template for melody-woods-water
 
+Parameters:
+  KmsKeyArn:
+    Type: String
+    Description: KMS Key ARN for decrypting Sensaphone credentials
+    Default: "arn:aws:kms:us-east-1:REDACTED:key/db7faab7-9c30-4f8e-8559-8b5824334944"
+  DryRun:
+    Type: String
+    Description: Set to 'true' to skip actual Sensaphone output changes
+    Default: "true"
+    AllowedValues: ["true", "false"]
+
+Globals:
+  Function:
+    Runtime: python3.11
+    MemorySize: 128
+    Timeout: 60
+    Layers:
+      - !Ref pysensaphoneLayer
+    Environment:
+      Variables:
+        DRY_RUN: !Ref DryRun
+        SENSAPHONE_CACHE_PARAMETER: /sensaphone/session
+        SENSAPHONE_USERNAME: controls@melodywoodscontrols.awsapps.com
+
 Resources:
+  pysensaphoneLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: pysensaphone-lib
+      Description: Shared Library for Sensaphone API v0.6.2
+      ContentUri: ../layers/pysensaphone/python
+      CompatibleRuntimes:
+        - python3.11
+    Metadata:
+      BuildMethod: python3.11
+
   supply:
     Type: "AWS::Serverless::Function"
     Properties:
       CodeUri: supply/
       Handler: app.lambda_handler
-      Runtime: python3.11
-      Description: ''
-      MemorySize: 128
-      Timeout: 60
+      Description: 'Water Supply Control'
+      Policies:
+        - SSMParameterReadPolicy:
+            ParameterName: "*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:PutParameter
+              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/sensaphone/session"
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Ref KmsKeyArn
       Events:
         Schedule1:
           Type: Schedule
@@ -31,24 +75,24 @@ Resources:
             Input: '{"sentinel_name":"Well#5","pump_name": "#5 Well Pump", "pump": "", "reason": {"type": "well5"}}'
             Schedule: cron(0/15 * * * ? *)
             Enabled: false
-        Schedule3:
-          Type: Schedule
-          Properties:
-            Description: "Spring Pump - Timer/Parameter Control"
-            Name: "spring-timer"
-            Input: '{"sentinel_name":"TreatmentPlant","pump_name": "Spring Pump", "pump": "", "reason": {"type": "spring"}}'
-            Schedule: cron(0/15 * * * ? *)
-            Enabled: false
   tank88k:
     Type: "AWS::Serverless::Function"
     Properties:
       CodeUri: 88k_tank/
       Handler: app.lambda_handler
-      Runtime: python3.11
-      Description: ''
-      MemorySize: 128
-      Timeout: 60
-      Role:
+      Description: '88k Tank Control'
+      Policies:
+        - SSMParameterReadPolicy:
+            ParameterName: "*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:PutParameter
+              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/sensaphone/session"
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Ref KmsKeyArn
       Events:
         Schedule1:
           Type: Schedule
@@ -69,11 +113,62 @@ Resources:
     Properties:
       CodeUri: email/
       Handler: app.lambda_handler
-      Runtime: python3.11
-      Description: ''
-      MemorySize: 128
-      Timeout: 60
-    PermissionToCallLambdaAbove:
+      Description: 'Email Alert Handling'
+      Environment:
+        Variables:
+          SUPPLY_LAMBDA_NAME: !Ref supply
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref supply
+        - SSMParameterReadPolicy:
+            ParameterName: "*"
+        - S3ReadPolicy:
+            BucketName: !Ref EmailStorageBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:PutParameter
+              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/sensaphone/session"
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Ref KmsKeyArn
+
+  EmailStorageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "melody-woods-water-emails-${AWS::AccountId}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldEmails
+            Status: Enabled
+            ExpirationInDays: 7
+
+  EmailStorageBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref EmailStorageBucket
+      PolicyDocument:
+        Statement:
+          - Sid: AllowSESSaveEmail
+            Effect: Allow
+            Principal:
+              Service: ses.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Sub "arn:aws:s3:::${EmailStorageBucket}/*"
+            Condition:
+              StringEquals:
+                aws:Referer: !Ref AWS::AccountId
+
+  AllowSESInvokeEmailLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref email
+      Principal: ses.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+
+  PermissionToCallLambdaAbove:
       Type: AWS::Lambda::Permission
       DependsOn: email
       Properties:
