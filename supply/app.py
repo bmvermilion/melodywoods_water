@@ -79,13 +79,10 @@ def lambda_handler(event, context):
         if event['pump'] == 'on':
             # Specific logic for Well #3: only turn on if within the broad daily window
             if event['pump_name'] == '#3 Well Pump':
-    well3_on_hour_param = water_logic.get_ssm_param('well3_on', default_value="21:00")
-                well3_off_hour_param = water_logic.get_ssm_param('well3_off', default_value="10:00")
-                on_hour = int(well3_on_hour_param.split(":")[0])
-                off_hour = int(well3_off_hour_param.split(":")[0])
-                current_hour = current_time.hour
-                
-                if (current_hour >= on_hour) or (current_hour <= off_hour):
+                well3_on_param = water_logic.get_ssm_param('well3_on', default_value="21:00")
+                well3_off_param = water_logic.get_ssm_param('well3_off', default_value="10:00")
+
+                if water_logic.is_within_daily_window(well3_on_param, well3_off_param, current_time):
                     status_code, msg, pdata = change_pump(event, creds, device_id, zone_id, power, current_pump_value, 'on')
                 else:
                     msg = f"{reason_type} Well#3 - Outside allowed hours"

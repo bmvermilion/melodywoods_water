@@ -6,9 +6,11 @@ import json
 from datetime import datetime
 import dateutil.tz
 
-# Add paths
-sys.path.append(os.path.abspath('layers/pysensaphone/python'))
-sys.path.append(os.path.abspath('melodywoods_water/88k_tank'))
+# Resolve paths relative to this file so the test works from any cwd.
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+# Tank handler must win over other lambdas' app.py modules
+sys.path.insert(0, os.path.join(REPO_ROOT, 'melodywoods_water', '88k_tank'))
+sys.path.insert(0, os.path.join(REPO_ROOT, 'layers', 'pysensaphone', 'python'))
 
 import app as tank_app
 
@@ -22,7 +24,7 @@ class TestTankLogic(unittest.TestCase):
         """Test that if tank level > shutoff_level, pump is turned OFF"""
         
         # Mock SSM Parameters
-        mock_ssm.side_effect = lambda Name: '23.3' if Name == 'shutoff_level_88k' else '22.8'
+        mock_ssm.side_effect = lambda Name, default_value=None: '23.3' if Name == 'shutoff_level_88k' else '22.8'
 
         # Mock Event (Hourly check)
         event = {"pump": "", "reason": "Hourly"}
