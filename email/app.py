@@ -1,4 +1,4 @@
-from pysensaphone import sensaphone_auth, get_sensaphone, set_sensaphone, water_logic
+# Only the email parser is used here; auth/SSM/KMS belong to the other handlers.
 from pysensaphone.email_parser import SensaphoneEmailParser
 import boto3
 import email
@@ -74,7 +74,10 @@ def lambda_handler(event, context):
     
     actions = []
 
-    # 1. Check for Chlorine Alarms (Only action on TP)
+    # 1. Check for Chlorine Alarms. Only the Treatment Plant barrel is in use;
+    # Well #3 chlorine alarms are intentionally ignored.
+    # Zero and negative readings indicate a wiring fault or a power-loss
+    # artifact, not a real low-chlorine alarm, so they are ignored.
     cl_level = parser.find_chlorine_alarm()
     if cl_level is not None and cl_level > 0:
         if sentinel == 'TreatmentPlant':
