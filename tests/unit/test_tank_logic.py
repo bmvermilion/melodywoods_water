@@ -8,12 +8,11 @@ import dateutil.tz
 
 # Resolve paths relative to this file so the tests work from any cwd.
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-WORKSPACE_ROOT = os.path.dirname(PROJECT_ROOT)
 # Tank handler must win over other lambdas' app.py modules
 sys.path.insert(0, os.path.join(PROJECT_ROOT, '88k_tank'))
-# In the workspace the vendored layer wins; standalone checkouts use the
-# installed pysensaphone package.
-LAYER_DIR = os.path.join(WORKSPACE_ROOT, 'layers', 'pysensaphone', 'python')
+# The vendored layer is what gets deployed; fall back to an installed
+# pysensaphone package when the layer is absent.
+LAYER_DIR = os.path.join(PROJECT_ROOT, 'layers', 'pysensaphone', 'python')
 if os.path.isdir(LAYER_DIR):
     sys.path.insert(0, LAYER_DIR)
 

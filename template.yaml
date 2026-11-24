@@ -35,7 +35,7 @@ Resources:
     Properties:
       LayerName: pysensaphone-lib
       Description: Shared Library for Sensaphone API v0.6.2
-      ContentUri: ../layers/pysensaphone/python
+      ContentUri: layers/pysensaphone/python
       CompatibleRuntimes:
         - python3.11
     Metadata:
@@ -172,7 +172,6 @@ Resources:
   # and WorkMail is shut down (March 2027).
   PermissionToCallLambdaAbove:
       Type: AWS::Lambda::Permission
-      DependsOn: email
       Properties:
         Action: lambda:InvokeFunction
         FunctionName: !Ref email
