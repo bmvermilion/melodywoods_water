@@ -76,6 +76,8 @@ def lambda_handler(event, context):
 
     # 1. Check for Chlorine Alarms. Only the Treatment Plant barrel is in use;
     # Well #3 chlorine alarms are intentionally ignored.
+    # Zero and negative readings indicate a wiring fault or a power-loss
+    # artifact, not a real low-chlorine alarm, so they are ignored.
     cl_level = parser.find_chlorine_alarm()
     if cl_level is not None and cl_level > 0:
         if sentinel == 'TreatmentPlant':

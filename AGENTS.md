@@ -27,9 +27,9 @@ A `pysensaphone` checkout sitting next to this repo (default `../pysensaphone`) 
     - [x] Implement the SES inbound path alongside WorkMail.
     - [ ] Complete the SES cutover and remove the WorkMail invoke permission.
 
-### Known Gaps To Confirm
-- **Well #3 chlorine**: not currently used. The handler intentionally ignores Well #3 chlorine alarms; `tests/unit/test_email_logic.py` asserts that no supply call is made.
-- **Zero readings**: a parsed Treatment Plant chlorine level of `0` is treated as "no alarm". Confirm that an empty barrel cannot report exactly `0`.
+### Alert Behavior Decisions
+- **Well #3 chlorine**: not used. The handler intentionally ignores Well #3 chlorine alarms; `tests/unit/test_email_logic.py` asserts that no supply call is made.
+- **Zero/negative chlorine**: ignored on purpose. A Treatment Plant reading of `0` or below is treated as a wiring fault or power-loss artifact, not a low-chlorine alarm.
 
 ## Deployment Details
 - **Makefile**: repo root (`make build`, `make deploy`, `make test`)
