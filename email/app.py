@@ -1,4 +1,4 @@
-from pysensaphone import sensaphone_auth, get_sensaphone, set_sensaphone, water_logic
+# Only the email parser is used here; auth/SSM/KMS belong to the other handlers.
 from pysensaphone.email_parser import SensaphoneEmailParser
 import boto3
 import email
