@@ -244,5 +244,6 @@ class TestDailyWindow(unittest.TestCase):
     def test_invalid_bounds(self):
         self.assertFalse(supply_app.water_logic.is_within_daily_window("nope", "10:00", self._at(12, 0)))
 
+
 if __name__ == '__main__':
     unittest.main()
