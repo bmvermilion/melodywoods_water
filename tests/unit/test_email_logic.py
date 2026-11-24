@@ -50,6 +50,20 @@ class TestEmailAlerts(unittest.TestCase):
 
     @patch('app.invoke_supply_lambda')
     @patch('app.get_email_body')
+    def test_tp_zero_chlorine_is_ignored(self, mock_body, mock_invoke):
+        """A zero or negative reading is a wiring/power artifact, not an alarm."""
+        for level in ('0.0', '-0.5'):
+            with self.subTest(level=level):
+                mock_body.return_value = (
+                    f"From:\nTreatmentPlant\n"
+                    f"Low level alarm {level} Gal. Chlorine Barrel Level\n"
+                )
+                email_app.lambda_handler({'messageId': 'test'}, None)
+
+        mock_invoke.assert_not_called()
+
+    @patch('app.invoke_supply_lambda')
+    @patch('app.get_email_body')
     def test_tp_power_off_turns_off_well3(self, mock_body, mock_invoke):
         mock_body.return_value = POWER_OFF.format(sentinel='TreatmentPlant')
         mock_invoke.return_value = {'success': True}
