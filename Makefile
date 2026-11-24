@@ -60,6 +60,7 @@ test-unit:
 	@echo "Running local unit tests..."
 	$(PYTHON) tests/unit/test_supply_logic.py && \
 	$(PYTHON) tests/unit/test_tank_logic.py && \
+	$(PYTHON) tests/unit/test_email_logic.py && \
 	$(PYTHON) tests/unit/test_auth_logic.py
 
 # Needs docker + sam + AWS creds; self-skips when unavailable.

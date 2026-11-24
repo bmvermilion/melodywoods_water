@@ -74,7 +74,8 @@ def lambda_handler(event, context):
     
     actions = []
 
-    # 1. Check for Chlorine Alarms (Only action on TP)
+    # 1. Check for Chlorine Alarms. Only the Treatment Plant barrel is in use;
+    # Well #3 chlorine alarms are intentionally ignored.
     cl_level = parser.find_chlorine_alarm()
     if cl_level is not None and cl_level > 0:
         if sentinel == 'TreatmentPlant':
