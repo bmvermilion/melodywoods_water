@@ -5,13 +5,27 @@ import unittest
 
 PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 WORKSPACE_ROOT = os.path.dirname(PROJECT_DIR)
-SAM_BIN = os.environ.get('SAM', os.path.join(WORKSPACE_ROOT, '.venv', 'bin', 'sam'))
+
+
+def _sam_binary():
+    """Prefer a local virtualenv, then SAM on PATH."""
+    explicit = os.environ.get('SAM')
+    if explicit:
+        return explicit
+    for root in (PROJECT_DIR, WORKSPACE_ROOT):
+        candidate = os.path.join(root, '.venv', 'bin', 'sam')
+        if os.path.exists(candidate):
+            return candidate
+    return shutil.which('sam') or 'sam'
+
+
+SAM_BIN = _sam_binary()
 
 
 def _missing_prereqs():
     """Return a list of reasons the integration tests cannot run here."""
     missing = []
-    if not os.path.exists(SAM_BIN):
+    if not (os.path.exists(SAM_BIN) or shutil.which(SAM_BIN)):
         missing.append(f"sam not found at {SAM_BIN}")
     if shutil.which('docker') is None:
         missing.append("docker not on PATH")

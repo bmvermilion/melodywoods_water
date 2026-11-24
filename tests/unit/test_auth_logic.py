@@ -1,7 +1,14 @@
+import os
+import sys
 import unittest
 from unittest.mock import MagicMock, patch
 import json
 from datetime import datetime, timedelta
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+LAYER_DIR = os.path.join(PROJECT_ROOT, 'layers', 'pysensaphone', 'python')
+if os.path.isdir(LAYER_DIR):
+    sys.path.insert(0, LAYER_DIR)
 
 from pysensaphone import sensaphone_auth
 
