@@ -34,7 +34,7 @@ Scheduled control of the supply pumps.
 Reacts to Sensaphone alarm emails.
 
 - **Chlorine Safety**: A low-chlorine alarm from the Treatment Plant shuts off
-  Well #3.
+  Well #3. Well #3 chlorine alarms are not currently used and are ignored.
 - **Power Protection**: Power loss at the Treatment Plant or Well #3 shuts off
   Well #3. Power restoration resumes it, subject to the Well #3 daily window.
 - **Trigger**: The function is invoked by an SES receipt rule or a WorkMail
