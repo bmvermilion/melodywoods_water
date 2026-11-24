@@ -92,3 +92,5 @@ The template assumes these already exist in the AWS account:
   path expects the raw message saved to
   `melody-woods-water-emails-<account-id>` with the SES message ID as the
   object key.
+- **Login name**: `SENSAPHONE_USERNAME` is set in `template.yaml`; update it
+  there if the Sensaphone account address changes.
