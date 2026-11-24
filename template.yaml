@@ -8,7 +8,7 @@ Description: >
 Parameters:
   KmsKeyArn:
     Type: String
-    Description: KMS Key ARN for decrypting Sensaphone credentials
+    Description: KMS key ARN for decrypting Sensaphone credentials. Defaults to the Melody Woods account key; override for other accounts.
     Default: "arn:aws:kms:us-east-1:222492554563:key/db7faab7-9c30-4f8e-8559-8b5824334944"
   DryRun:
     Type: String
@@ -34,8 +34,8 @@ Resources:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: pysensaphone-lib
-      Description: Shared Library for Sensaphone API v0.6.2
-      ContentUri: ../layers/pysensaphone/python
+      Description: Shared pysensaphone library
+      ContentUri: layers/pysensaphone/python
       CompatibleRuntimes:
         - python3.11
     Metadata:
@@ -108,6 +108,8 @@ Resources:
             Name: "88kpump-hourly"
             Input: '{"pump": "", "reason": "Hourly"}'
             Schedule: cron(05 * * * ? *)
+  # Invoked by an SES receipt rule or a WorkMail organization. Neither trigger
+  # is created by this template; see the README's external setup section.
   email:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -120,19 +122,13 @@ Resources:
       Policies:
         - LambdaInvokePolicy:
             FunctionName: !Ref supply
-        - SSMParameterReadPolicy:
-            ParameterName: "*"
         - S3ReadPolicy:
             BucketName: !Ref EmailStorageBucket
         - Statement:
             - Effect: Allow
               Action:
-                - ssm:PutParameter
-              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/sensaphone/session"
-            - Effect: Allow
-              Action:
-                - kms:Decrypt
-              Resource: !Ref KmsKeyArn
+                - workmailmessageflow:GetRawMessageContent
+              Resource: !Sub "arn:aws:workmailmessageflow:${AWS::Region}:${AWS::AccountId}:message/*"
 
   EmailStorageBucket:
     Type: AWS::S3::Bucket
@@ -168,9 +164,10 @@ Resources:
       Principal: ses.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
 
+  # Legacy WorkMail trigger. Keep until the SES migration is fully cut over
+  # and WorkMail is shut down (March 2027).
   PermissionToCallLambdaAbove:
       Type: AWS::Lambda::Permission
-      DependsOn: email
       Properties:
         Action: lambda:InvokeFunction
         FunctionName: !Ref email

@@ -249,6 +249,9 @@ supply/creds.json
 88k_tank/creds.json
 email/creds.json
 
+# Encrypted credential blob for the vendored layer (never commit)
+*.pem
+
 ### SAM ###
 # Ignore build directories for the AWS Serverless Application Model (SAM)
 # Info: https://aws.amazon.com/serverless/sam/
