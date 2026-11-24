@@ -25,6 +25,7 @@ A `pysensaphone` checkout sitting next to this repo (default `../pysensaphone`) 
 ### Infrastructure Migration
 - [ ] **Amazon WorkMail Deprecation**: Amazon WorkMail is being discontinued on March 31, 2027.
     - [x] Implement the SES inbound path alongside WorkMail.
+    - [x] Grant the email role `workmailmessageflow:GetRawMessageContent` for the legacy path.
     - [ ] Complete the SES cutover and remove the WorkMail invoke permission.
 
 ### Alert Behavior Decisions

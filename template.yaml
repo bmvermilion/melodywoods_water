@@ -124,6 +124,11 @@ Resources:
             FunctionName: !Ref supply
         - S3ReadPolicy:
             BucketName: !Ref EmailStorageBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - workmailmessageflow:GetRawMessageContent
+              Resource: !Sub "arn:aws:workmailmessageflow:${AWS::Region}:${AWS::AccountId}:message/*"
 
   EmailStorageBucket:
     Type: AWS::S3::Bucket
