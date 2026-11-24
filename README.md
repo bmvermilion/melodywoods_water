@@ -27,7 +27,8 @@ Real-time reaction to Sensaphone emergency alerts.
 - **Language**: Python 3.11
 - **Shared Library**: All functions utilize a shared **AWS Lambda Layer** containing the `pysensaphone` library.
 - **Infrastructure**: Managed via AWS SAM (Serverless Application Model).
-- **Triggers**: EventBridge Schedules (cron) and SES Inbound Email.
+- **Triggers**: EventBridge Schedules (cron) and inbound email (SES, with
+  WorkMail retained until its 2027 shutdown).
 
 ## Development & Operations
 Use the root-level `Makefile` for standard tasks:

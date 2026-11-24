@@ -168,6 +168,8 @@ Resources:
       Principal: ses.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
 
+  # Legacy WorkMail trigger. Keep until the SES migration is fully cut over
+  # and WorkMail is shut down (March 2027).
   PermissionToCallLambdaAbove:
       Type: AWS::Lambda::Permission
       DependsOn: email

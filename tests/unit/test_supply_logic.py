@@ -6,12 +6,16 @@ import json
 from datetime import datetime
 import dateutil.tz
 
-# Resolve paths relative to this file so the test works from any cwd.
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+# Resolve paths relative to this file so the tests work from any cwd.
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+WORKSPACE_ROOT = os.path.dirname(PROJECT_ROOT)
 # Supply handler must win over other lambdas' app.py modules
-sys.path.insert(0, os.path.join(REPO_ROOT, 'melodywoods_water', 'supply'))
-# Deployed layer copy takes precedence for pysensaphone
-sys.path.insert(0, os.path.join(REPO_ROOT, 'layers', 'pysensaphone', 'python'))
+sys.path.insert(0, os.path.join(PROJECT_ROOT, 'supply'))
+# In the workspace the vendored layer wins; standalone checkouts use the
+# installed pysensaphone package.
+LAYER_DIR = os.path.join(WORKSPACE_ROOT, 'layers', 'pysensaphone', 'python')
+if os.path.isdir(LAYER_DIR):
+    sys.path.insert(0, LAYER_DIR)
 
 import app as supply_app
 
