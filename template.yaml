@@ -122,19 +122,8 @@ Resources:
       Policies:
         - LambdaInvokePolicy:
             FunctionName: !Ref supply
-        - SSMParameterReadPolicy:
-            ParameterName: "*"
         - S3ReadPolicy:
             BucketName: !Ref EmailStorageBucket
-        - Statement:
-            - Effect: Allow
-              Action:
-                - ssm:PutParameter
-              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/sensaphone/session"
-            - Effect: Allow
-              Action:
-                - kms:Decrypt
-              Resource: !Ref KmsKeyArn
 
   EmailStorageBucket:
     Type: AWS::S3::Bucket
