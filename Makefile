@@ -1,6 +1,6 @@
 # Makefile for Melody Woods Water Automation
 
-.PHONY: build deploy test test-unit test-integration lint sync-layer dry-run logs-supply logs-tank logs-email clean
+.PHONY: build deploy test test-unit test-integration lint check-layer sync-layer dry-run logs-supply logs-tank logs-email clean
 
 # Default AWS Profile and Stack Name
 PROFILE ?= melody
@@ -18,12 +18,22 @@ PYSENSAPHONE_DIR ?= ../pysensaphone
 # Set SKIP_INTEGRATION=1 to run only fast unit tests.
 SKIP_INTEGRATION ?= 0
 
+# Set DRY_RUN=true to deploy with Sensaphone writes disabled.
+DRY_RUN ?= false
+
 # Fail fast on syntax errors before anything reaches AWS.
 lint:
 	@echo "Byte-compiling Lambda handlers and the vendored layer..."
 	$(PYTHON) -m compileall -q supply 88k_tank email layers/pysensaphone/python/pysensaphone
 
-# The deployed layer is a vendored copy; keep it in step with the library repo.
+# The layer needs the encrypted credential blob at runtime. It is not committed,
+# so fail loudly instead of deploying a layer that cannot decrypt credentials.
+check-layer:
+	@test -s layers/pysensaphone/python/pysensaphone/encrypted_controls.pem || \
+		(echo "ERROR: missing encrypted_controls.pem. Run 'make sync-layer' with a ../pysensaphone checkout."; exit 1)
+
+# The deployed layer is a vendored copy; refresh it explicitly from the library
+# repo, review the diff, and commit it.
 sync-layer:
 	@if [ -d "$(PYSENSAPHONE_DIR)/pysensaphone" ]; then \
 		echo "Syncing pysensaphone from $(PYSENSAPHONE_DIR)..."; \
@@ -31,17 +41,18 @@ sync-layer:
 		if [ -f "$(PYSENSAPHONE_DIR)/pysensaphone/encrypted_controls.pem" ]; then \
 			cp $(PYSENSAPHONE_DIR)/pysensaphone/encrypted_controls.pem layers/pysensaphone/python/pysensaphone/; \
 		fi; \
+		echo "Review and commit the layer diff before deploying."; \
 	else \
 		echo "No pysensaphone checkout at $(PYSENSAPHONE_DIR); using the vendored layer."; \
 	fi
 
-build: lint sync-layer
+build: lint check-layer
 	@echo "Building with SAM (using container)..."
 	$(SAM) build --use-container
 
-deploy: lint sync-layer test
+deploy: check-layer test
 	@echo "Deploying to AWS using profile: $(PROFILE)..."
-	$(SAM) deploy --profile $(PROFILE)
+	$(SAM) deploy --profile $(PROFILE) --parameter-overrides DryRun=$(DRY_RUN)
 
 test: lint test-unit test-integration
 

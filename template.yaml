@@ -8,7 +8,7 @@ Description: >
 Parameters:
   KmsKeyArn:
     Type: String
-    Description: KMS Key ARN for decrypting Sensaphone credentials
+    Description: KMS key ARN for decrypting Sensaphone credentials. Defaults to the Melody Woods account key; override for other accounts.
     Default: "arn:aws:kms:us-east-1:REDACTED:key/db7faab7-9c30-4f8e-8559-8b5824334944"
   DryRun:
     Type: String
@@ -34,7 +34,7 @@ Resources:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: pysensaphone-lib
-      Description: Shared Library for Sensaphone API v0.6.2
+      Description: Shared pysensaphone library
       ContentUri: layers/pysensaphone/python
       CompatibleRuntimes:
         - python3.11
@@ -108,6 +108,8 @@ Resources:
             Name: "88kpump-hourly"
             Input: '{"pump": "", "reason": "Hourly"}'
             Schedule: cron(05 * * * ? *)
+  # Invoked by an SES receipt rule or a WorkMail organization. Neither trigger
+  # is created by this template; see the README's external setup section.
   email:
     Type: 'AWS::Serverless::Function'
     Properties:
