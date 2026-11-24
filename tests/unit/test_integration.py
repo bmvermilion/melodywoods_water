@@ -3,9 +3,9 @@ import shutil
 import subprocess
 import unittest
 
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-PROJECT_DIR = os.path.join(REPO_ROOT, 'melodywoods_water')
-SAM_BIN = os.environ.get('SAM', os.path.join(REPO_ROOT, '.venv', 'bin', 'sam'))
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+WORKSPACE_ROOT = os.path.dirname(PROJECT_DIR)
+SAM_BIN = os.environ.get('SAM', os.path.join(WORKSPACE_ROOT, '.venv', 'bin', 'sam'))
 
 
 def _missing_prereqs():

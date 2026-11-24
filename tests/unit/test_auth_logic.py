@@ -1,12 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
-import sys
-import os
 import json
 from datetime import datetime, timedelta
-
-# Add layers path to sys.path so we can import pysensaphone
-sys.path.append(os.path.abspath('layers/pysensaphone/python'))
 
 from pysensaphone import sensaphone_auth
 

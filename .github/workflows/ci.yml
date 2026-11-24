@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install python-dateutil
+          pip install git+https://github.com/bmvermilion/pysensaphone.git
+
+      - name: Run unit tests
+        run: |
+          python tests/unit/test_auth_logic.py
+          python tests/unit/test_supply_logic.py
+          python tests/unit/test_tank_logic.py
