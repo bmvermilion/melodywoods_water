@@ -28,14 +28,18 @@ def lambda_handler(event, context):
 
     # TP Data
     pump_zone = water_logic.find_zone(tp_device, '88k Pump')
+    if not pump_zone:
+        return water_logic.format_lambda_result(404, "Zone Discovery Failure", "88k Pump zone not found on TreatmentPlant", None, devices, event)
     device_id = tp_device['device_id']
     tp_power = tp_device['power_value']
-    zone_id = pump_zone['zone_id'] if pump_zone else None
+    zone_id = pump_zone['zone_id']
 
     # Tank Data
     level_zone = water_logic.find_zone(tank_device, '88k Level')
+    if not level_zone:
+        return water_logic.format_lambda_result(404, "Zone Discovery Failure", "88k Level zone not found on 88kTank", None, devices, event)
     tank_power = tank_device['power_value']
-    level_88k = water_logic.parse_tank_level(level_zone['value']) if level_zone else 0.0
+    level_88k = water_logic.parse_tank_level(level_zone['value'])
 
     # Logic Engine
     pump_value = None
