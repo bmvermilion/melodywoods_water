@@ -22,11 +22,13 @@ Autonomous management of the main 88k storage tank.
 Scheduled control of the supply pumps.
 
 - **Timers**: Runs every 15 minutes and compares Pacific time against
-  `well3_on` / `well3_off` in SSM. Well #5 and the spring use the same pattern
-  (`well5_*`, `spring_*`); their schedules are disabled by default.
+  `well3_on` / `well3_off` in SSM. Well #5 and the spring use the same timer
+  pattern (`well5_*`, `spring_*`). The Well #5 schedule is disabled in the
+  template; the spring is not scheduled, and email/power alerts do not
+  trigger it.
 - **Flexible Scheduling**: Adjust the SSM timers instead of redeploying.
 - **Alerts**: Handles `email_alarm` and `intermittent_pumping` events from the
-  email handler.
+  email handler. Alerts currently act on Well #3 only.
 
 ### 3. Safety Alert Handler (`email`)
 Reacts to Sensaphone alarm emails.
@@ -81,7 +83,7 @@ The template assumes these already exist in the AWS account:
   Melody Woods key; override it for another account.
 - **SSM parameters** read by the handlers:
   - Timers: `well3_on`, `well3_off`, `well5_on`, `well5_off`, `spring_on`,
-    `spring_off`
+    `spring_off` (spring is not currently scheduled)
   - Tank thresholds: `shutoff_level_88k`, `shutoff_noon_level_88k`
   - `/sensaphone/session` is a SecureString cache created by the functions.
 - **Encrypted credential blob** at

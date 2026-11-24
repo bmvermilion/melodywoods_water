@@ -20,6 +20,7 @@ A `pysensaphone` checkout sitting next to this repo (default `../pysensaphone`) 
 - [x] **Lambda Layers**: Moved the library into a shared Layer to avoid bundling `.tar.gz` in every folder.
 - [~] **Configuration**: Timers and tank thresholds come from SSM; device and zone names still live in the handlers. `DRY_RUN` and `SENSAPHONE_USERNAME` are environment variables.
 - [x] **Shared Utilities**: Centralized timezone handling and scheduling logic.
+- [x] **Spring pump**: Timer control remains available (`spring_*`), but it is not scheduled and email/power alerts intentionally do not trigger it.
 
 ### Infrastructure Migration
 - [ ] **Amazon WorkMail Deprecation**: Amazon WorkMail is being discontinued on March 31, 2027.
@@ -27,7 +28,7 @@ A `pysensaphone` checkout sitting next to this repo (default `../pysensaphone`) 
     - [ ] Complete the SES cutover and remove the WorkMail invoke permission.
 
 ### Known Gaps To Confirm
-- **Chlorine alarms**: the handler acts on Treatment Plant alerts and shuts off Well #3. The original design also called for Well #3 chlorine alarms and the spring pump to be shut off. Confirm the intended behavior before changing it.
+- **Chlorine alarms**: the handler acts on Treatment Plant alerts and shuts off Well #3. The original design also called for Well #3's own chlorine alarm to shut off Well #3. Confirm the intended behavior before changing it.
 - **Zero readings**: a parsed chlorine level of `0` is treated as "no alarm". Confirm that an empty barrel cannot report exactly `0`.
 
 ## Deployment Details
