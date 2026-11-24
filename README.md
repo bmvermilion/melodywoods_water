@@ -32,9 +32,14 @@ Real-time reaction to Sensaphone emergency alerts.
 ## Development & Operations
 Use the root-level `Makefile` for standard tasks:
 - `make build`: Prepare the application and layer.
-- `make deploy`: Deploy to AWS (use `DryRun=false` for live operations).
+- `make deploy`: Build, test, and deploy to AWS.
 - `make test`: Run logic verification tests.
 - `make logs-supply`: Tail live logs for the supply function.
 
 ## Safety: Dry Run Mode
-The system defaults to **Dry Run** mode to prevent accidental pump toggling during maintenance. To activate live pumping, ensure the `DryRun` parameter in `template.yaml` is set to `false`.
+`DryRun` defaults to `false`, so a normal deploy makes live pump changes. Use dry
+run mode during maintenance to log intended changes without touching the pumps:
+
+```bash
+sam deploy --parameter-overrides DryRun=true
+```
