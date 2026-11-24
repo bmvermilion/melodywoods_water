@@ -46,7 +46,9 @@ Reacts to Sensaphone alarm emails.
 
 - **Language**: Python 3.11
 - **Shared Library**: Lambda layer vendored at `layers/pysensaphone/python`,
-  synced from the `pysensaphone` repo with `make sync-layer`.
+  synced from the `pysensaphone` repo with `make sync-layer`. The layer is pure
+  Python; `make build` strips local `cpython-3.x` extensions so a 3.12 build
+  never ships to the 3.11 runtime.
 - **Infrastructure**: AWS SAM (Serverless Application Model)
 - **Triggers**: EventBridge Schedules (cron) and inbound email (SES, with
   WorkMail retained until its 2027 shutdown).

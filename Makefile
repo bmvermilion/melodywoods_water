@@ -1,6 +1,6 @@
 # Makefile for Melody Woods Water Automation
 
-.PHONY: build deploy test test-unit test-integration lint check-layer sync-layer dry-run logs-supply logs-tank logs-email clean
+.PHONY: build deploy test test-unit test-integration lint check-layer strip-local-binaries sync-layer dry-run logs-supply logs-tank logs-email clean
 
 # Default AWS Profile and Stack Name
 PROFILE ?= melody
@@ -32,6 +32,11 @@ check-layer:
 	@test -s layers/pysensaphone/python/pysensaphone/encrypted_controls.pem || \
 		(echo "ERROR: missing encrypted_controls.pem. Run 'make sync-layer' with a ../pysensaphone checkout."; exit 1)
 
+# The vendored layer is pure Python. Drop extensions built for the local
+# interpreter so a 3.12 build never ships to the 3.11 Lambda runtime.
+strip-local-binaries:
+	@find layers/pysensaphone/python -name '*.cpython-3*.so' -delete
+
 # The deployed layer is a vendored copy; refresh it explicitly from the library
 # repo, review the diff, and commit it.
 sync-layer:
@@ -46,11 +51,11 @@ sync-layer:
 		echo "No pysensaphone checkout at $(PYSENSAPHONE_DIR); using the vendored layer."; \
 	fi
 
-build: lint check-layer
+build: lint check-layer strip-local-binaries
 	@echo "Building with SAM (using container)..."
 	$(SAM) build --use-container
 
-deploy: check-layer test
+deploy: check-layer strip-local-binaries test
 	@echo "Deploying to AWS using profile: $(PROFILE)..."
 	$(SAM) deploy --profile $(PROFILE) --parameter-overrides DryRun=$(DRY_RUN)
 
