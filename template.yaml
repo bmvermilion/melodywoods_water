@@ -6,10 +6,14 @@ Description: >
   SAM Template for melody-woods-water
 
 Parameters:
-  KmsKeyArn:
+  KmsKeyId:
     Type: String
-    Description: KMS key ARN for decrypting Sensaphone credentials. Defaults to the Melody Woods account key; override for other accounts.
-    Default: "arn:aws:kms:us-east-1:REDACTED:key/db7faab7-9c30-4f8e-8559-8b5824334944"
+    Description: >-
+      KMS key ID (not the full ARN) used to decrypt the Sensaphone credentials.
+      The ARN is composed from this deployment's partition, region, and account
+      number at deploy time, so no account ID is stored in this template.
+      Override the key ID for another account.
+    Default: "db7faab7-9c30-4f8e-8559-8b5824334944"
   DryRun:
     Type: String
     Description: Set to 'true' to skip actual Sensaphone output changes
@@ -58,7 +62,7 @@ Resources:
             - Effect: Allow
               Action:
                 - kms:Decrypt
-              Resource: !Ref KmsKeyArn
+              Resource: !Sub "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${KmsKeyId}"
       Events:
         Schedule1:
           Type: Schedule
@@ -92,7 +96,7 @@ Resources:
             - Effect: Allow
               Action:
                 - kms:Decrypt
-              Resource: !Ref KmsKeyArn
+              Resource: !Sub "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/${KmsKeyId}"
       Events:
         Schedule1:
           Type: Schedule

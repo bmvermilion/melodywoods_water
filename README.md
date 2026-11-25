@@ -82,8 +82,9 @@ make deploy DRY_RUN=true
 
 The template assumes these already exist in the AWS account:
 
-- **KMS key** for `encrypted_controls.pem`. The `KmsKeyArn` default is the
-  Melody Woods key; override it for another account.
+- **KMS key** for `encrypted_controls.pem`. The `KmsKeyId` default is the
+  Melody Woods key ID; the ARN is built at deploy time from the target
+  account, region, and partition. Override the key ID for another account.
 - **SSM parameters** read by the handlers:
   - Timers: `well3_on`, `well3_off`, `well5_on`, `well5_off`, `spring_on`,
     `spring_off` (spring is not currently scheduled)
